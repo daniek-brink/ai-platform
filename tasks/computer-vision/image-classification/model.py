@@ -112,7 +112,7 @@ class DriverDistractionModel():
             if self.model.layers[i].name not in ['first_dense_layer', 'final_dense_layer']:
                   self.model.layers[i].trainable = False
 
-        sgd = optimizers.SGD(lr = self.model_params['learning_rate'], decay=self.model_params['decay'],
+        sgd = optimizers.SGD(lr=self.model_params['learning_rate'], decay=self.model_params['decay'],
                              momentum=self.model_params['momentum'], nesterov=True)
         self.model.compile(optimizer=sgd, loss=self.model_params['objective_function'], metrics=self.loss_metrics)
 
