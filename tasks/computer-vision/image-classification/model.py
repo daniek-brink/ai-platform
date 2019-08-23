@@ -1,3 +1,6 @@
+"""
+Driver distraction model class
+"""
 
 import os
 import mlflow
@@ -85,14 +88,6 @@ class DriverDistractionModel():
         print(input_img)
         return self.model.predict(input_img, steps=len(input_img))
 
-    def set_model_params(self):
-        # TODO: implement
-        pass
-
-    def get_model_params(self):
-        # TODO: implement
-        pass
-
     def build_and_compile_model(self):
         """
         Setup the model architecture.
@@ -108,18 +103,18 @@ class DriverDistractionModel():
         pre_trained_model = Model.from_config(config)
         pre_trained_model.set_weights(weights)
 
-        x = Dense(NUM_CLASSES, activation = 'softmax', name='first_dense_layer')(pre_trained_model.get_layer('concatenate_5').output)
+        x = Dense(NUM_CLASSES, activation='softmax', name='first_dense_layer')(pre_trained_model.get_layer('concatenate_5').output)
         x = Reshape((NUM_CLASSES*32*32,))(x)
         x = Dense(NUM_CLASSES, name='final_dense_layer', activation='softmax')(x)
         self.model = Model(pre_trained_model.input[0], x)
 
-        for i in range (0,len(self.model.layers)):
+        for i in range(0, len(self.model.layers)):
             if self.model.layers[i].name not in ['first_dense_layer', 'final_dense_layer']:
                   self.model.layers[i].trainable = False
 
-        sgd = optimizers.SGD(lr = self.model_params['learning_rate'], decay = self.model_params['decay'],
-                             momentum = self.model_params['momentum'], nesterov = True)
-        self.model.compile(optimizer = sgd, loss=self.model_params['objective_function'], metrics = self.loss_metrics)
+        sgd = optimizers.SGD(lr = self.model_params['learning_rate'], decay=self.model_params['decay'],
+                             momentum=self.model_params['momentum'], nesterov=True)
+        self.model.compile(optimizer=sgd, loss=self.model_params['objective_function'], metrics=self.loss_metrics)
 
     def load_model(self):
         """

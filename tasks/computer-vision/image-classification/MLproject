@@ -11,7 +11,7 @@ entry_points:
       decay: {type: float, default: 1e-6}
       early_stop_patience: {type: int, default: 3}
       steps_per_epoch: {type: int, default: 400}
-      batch_size: {type: int, default: 40}
+      batch_size: {type: int, default: 30}
       epochs: {type: int, default: 15}
       validation_path: {type: string}
       training_path: {type: string}
@@ -25,9 +25,6 @@ entry_points:
 
   classify:
     parameters:
-      input_path: {type: string}
-      factor: {type: int, default: 2}
-      output_path: {type: string, default: 'output.png'}
-      load_path: {type: string, default: ''}
-      device: {type: string, default: 'cpu'}
-    command: "python super_res.py {input_path} {factor} {output_path} {load_path} {device}"  
+      model_name: {type: string}
+      path_to_image: {type: string}
+    command: "python classify.py --model_name {model_name} --path_to_image {path_to_image}"
