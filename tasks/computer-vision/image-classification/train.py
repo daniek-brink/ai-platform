@@ -4,22 +4,25 @@ Training demo.
 In order to use, download the data set from https://www.kaggle.com/jerrinv/driver-distraction/data.
 Next run the script setup_training_data.sh.
 To run this script, supply the path to the training images, the validation images and the file name of the new model, for example:
-`python demos/train.py ~/Downloads/kaggle/imgs/train/ ~/Downloads/kaggle/imgs/validation/ some_new_model`
+`python demos/train.py --training_path ~/Downloads/kaggle/imgs/train/ --validation_path ~/Downloads/kaggle/imgs/validation/ --model_name some_new_model --epochs 1 --batch_size 2 --steps_per_epoch 2`
 """
 
 #TODO: write setup_training_data script
 
 from model import DriverDistractionModel
-import sys
+from utils import set_model_params
+import argparse
 
-# Unpack the arguments to variables
-keys = 'path_to_training_images', 'path_to_validation_images', 'model_path', \
-       'batch_size', 'epochs', 'number_of_steps'
-args = {key: value for key, value in zip(keys, sys.argv[1:])}
-train_path = args['path_to_training_images']
-validation_path = args['path_to_validation_images']
-model_name = args['model_name']
+parser = argparse.ArgumentParser()
+arguments = ['epochs', 'steps_per_epoch', 'early_stop_patience', 'batch_size', 'learning_rate', 'momentum', 'objective_function',
+             'decay', 'training_path', 'validation_path', 'model_name']
+for arg in arguments:
+       parser.add_argument('--' + arg)
 
-model = DriverDistractionModel(model_name, train_path, validation_path)
+args = parser.parse_args()
+
+model_params = set_model_params(args)
+
+model = DriverDistractionModel(args.model_name, args.training_path, args.validation_path, model_params)
 model.fit()
 

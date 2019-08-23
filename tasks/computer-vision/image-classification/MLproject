@@ -5,17 +5,25 @@ conda_env: conda.yaml
 entry_points:
   train:
     parameters:
-      data_path: {type: string}
-      size: {type: int, default: 400}
-      factor: {type: int, default: 2}
-      bs: {type: int, default: 32}
-      epochs: {type: int, default: 20}
-      load: {type: bool, default: True}
-      load_path: {type: string, default: ''}
-      device: {type: string, default: 'cpu'}
-    command: "python train.py {data_path} {size} {factor} {bs} {epochs} {load} {load_path} {device}"
+      objective_function: {type: string, default: 'categorical_crossentropy'}
+      learning_rate: {type: float, default: 0.01}
+      momentum: {type: float, default: 0.9}
+      decay: {type: float, default: 1e-6}
+      early_stop_patience: {type: int, default: 3}
+      steps_per_epoch: {type: int, default: 400}
+      batch_size: {type: int, default: 40}
+      epochs: {type: int, default: 15}
+      validation_path: {type: string}
+      training_path: {type: string}
+      model_name: {type: string}
+    command: "python train.py --objective_function {data_path} \
+      --learning_rate {learning_rate} --momentum {momentum} --decay {decay}\
+      --early_stop_patience {early_stop_patience} --batch_size {batch_size}\
+      --steps_per_epoch {steps_per_epoch} --epochs {epochs}\
+      --validation_path {validation_path} --training_path {training_path}\
+      --model_name {model_name}"
 
-  super_res:
+  classify:
     parameters:
       input_path: {type: string}
       factor: {type: int, default: 2}

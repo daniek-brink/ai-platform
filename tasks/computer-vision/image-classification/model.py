@@ -18,12 +18,13 @@ class DriverDistractionModel():
     Class that instantiates a model to predict what a driver is doing, i.e. paying attention, looking at phone, etc.
     """
 
-    def __init__(self, model_file_name, path_to_training_data, path_to_validation_data):
+    def __init__(self, model_file_name, path_to_training_data, path_to_validation_data, model_params):
         """
         Initialize the model class
         :param model_file_name: File name of the model located in the trained_models directory. When training, this file is created.
         :param path_to_training_data: Path to the directory that contains the training data.
         :param path_to_validation_data: Path to the directory that contains the evaluation data.
+        :param model_params: Dictionary that contains the model parameters for training.
         """
 
         self.path_to_training_data = path_to_training_data
@@ -41,15 +42,8 @@ class DriverDistractionModel():
         self.openpose_stages = 6
 
         # Training parameters
-        self.objective_function = 'categorical_crossentropy'
         self.loss_metrics = ['accuracy']
-        self.learning_rate = 0.01
-        self.decay = 1e-6
-        self.momentum = 0.9
-        self.batch_size = 3 #40
-        self.early_stop_patience = 3
-        self.steps_per_epoch = 2 #400
-        self.epochs = 1 # 20
+        self.model_params = model_params
 
     def fit(self):
         """
@@ -60,24 +54,25 @@ class DriverDistractionModel():
         self.build_and_compile_model()
 
         # Create early stopping callback
-        cb_early_stopper = EarlyStopping(monitor='val_loss', patience=self.early_stop_patience)
+        cb_early_stopper = EarlyStopping(monitor='val_loss', patience=self.model_params['early_stop_patience'])
 
         # Create model checkpoint callback
         cb_checkpointer = ModelCheckpoint(filepath=os.path.join(CHECKPOINTS_DIR, self.model_file_name), monitor='val_loss',
                                           save_best_only=True, mode='auto')
 
         # Build tensorboard logging callback
-        cb_tensorboard = TensorBoard(log_dir=TENSORBOARD_LOG_DIR, histogram_freq=0, batch_size=self.batch_size, write_graph=True, write_grads=False)
+        cb_tensorboard = TensorBoard(log_dir=TENSORBOARD_LOG_DIR, histogram_freq=0, batch_size=self.model_params['batch_size'],
+                                     write_graph=True, write_grads=False)
 
         with mlflow.start_run():
-            mlflow.log_param("epochs", self.epochs)
+            mlflow.log_param("epochs", self.model_params['epochs'])
             mlflow.keras.log_model(self.model, "models")
             self.model.fit_generator(self.train_generator,
-                                               steps_per_epoch=self.steps_per_epoch,
-                                               epochs=self.epochs,
-                                               validation_data=self.validation_generator,
-                                               validation_steps=self.steps_per_epoch,
-                                               callbacks=[cb_checkpointer, cb_early_stopper, cb_tensorboard])
+                                     steps_per_epoch=self.model_params['steps_per_epoch'],
+                                     epochs=self.model_params['epochs'],
+                                     validation_data=self.validation_generator,
+                                     validation_steps=self.model_params['steps_per_epoch'],
+                                     callbacks=[cb_checkpointer, cb_early_stopper, cb_tensorboard])
 
         mlflow.keras.save_model(self.model, os.path.join(TRAINED_MODELS_DIR, self.model_file_name), conda_env='conda.yaml')
 
@@ -122,8 +117,9 @@ class DriverDistractionModel():
             if self.model.layers[i].name not in ['first_dense_layer', 'final_dense_layer']:
                   self.model.layers[i].trainable = False
 
-        sgd = optimizers.SGD(lr = self.learning_rate, decay = self.decay, momentum = self.momentum, nesterov = True)
-        self.model.compile(optimizer = sgd, loss = self.objective_function, metrics = self.loss_metrics)
+        sgd = optimizers.SGD(lr = self.model_params['learning_rate'], decay = self.model_params['decay'],
+                             momentum = self.model_params['momentum'], nesterov = True)
+        self.model.compile(optimizer = sgd, loss=self.model_params['objective_function'], metrics = self.loss_metrics)
 
     def load_model(self):
         """
@@ -138,7 +134,7 @@ class DriverDistractionModel():
 
         data_generator = ImageDataGenerator()
 
-        self.train_generator = data_generator.flow_from_directory(self.path_to_training_data, batch_size=self.batch_size,
+        self.train_generator = data_generator.flow_from_directory(self.path_to_training_data, batch_size=self.model_params['batch_size'],
                                                                   shuffle=True, class_mode='categorical')
-        self.validation_generator = data_generator.flow_from_directory(self.path_to_validation_data, batch_size=self.batch_size,
+        self.validation_generator = data_generator.flow_from_directory(self.path_to_validation_data, batch_size=self.model_params['batch_size'],
                                                                        class_mode='categorical')
