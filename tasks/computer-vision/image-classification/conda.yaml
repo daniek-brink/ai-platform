@@ -1,0 +1,17 @@
+name: produvia_env_img_classification
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.6
+  - pip:
+    - mlflow==1.2.0
+    - opencv-python==4.1.0.25
+    - tensorflow==1.14.0
+    - keras==2.2.4
+    - pillow==6.1.0
+    - docutils==0.12
+    - pygments==2.0.0
+    - pyparsing==2.0.2
+
