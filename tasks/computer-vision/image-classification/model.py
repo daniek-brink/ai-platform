@@ -79,15 +79,6 @@ class DriverDistractionModel():
 
         mlflow.keras.save_model(self.model, os.path.join(TRAINED_MODELS_DIR, self.model_file_name), conda_env='conda.yaml')
 
-    def predict(self, input_img):
-        """
-        Predicts the class of the image.
-        :param input_img: RGB image for which to predict.
-        :return: The most likely class, confidence
-        """
-        print(input_img)
-        return self.model.predict(input_img, steps=len(input_img))
-
     def build_and_compile_model(self):
         """
         Setup the model architecture.
@@ -110,7 +101,7 @@ class DriverDistractionModel():
 
         for i in range(0, len(self.model.layers)):
             if self.model.layers[i].name not in ['first_dense_layer', 'final_dense_layer']:
-                  self.model.layers[i].trainable = False
+                self.model.layers[i].trainable = False
 
         sgd = optimizers.SGD(lr=self.model_params['learning_rate'], decay=self.model_params['decay'],
                              momentum=self.model_params['momentum'], nesterov=True)
@@ -133,3 +124,13 @@ class DriverDistractionModel():
                                                                   shuffle=True, class_mode='categorical')
         self.validation_generator = data_generator.flow_from_directory(self.path_to_validation_data, batch_size=self.model_params['batch_size'],
                                                                        class_mode='categorical')
+
+    @staticmethod
+    def setup_prediction_data(path):
+        """
+        Setup data for prediction.
+        :return Test generator for use with model.predict_generator
+        """
+        data_generator = ImageDataGenerator()
+        test_generator = data_generator.flow_from_directory(path, batch_size=1, shuffle=False, class_mode=None)
+        return test_generator

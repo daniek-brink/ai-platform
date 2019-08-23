@@ -1,4 +1,4 @@
-name: Super_Res
+name: Image_Classification
 
 conda_env: conda.yaml
 
@@ -26,5 +26,5 @@ entry_points:
   classify:
     parameters:
       model_name: {type: string}
-      path_to_image: {type: string}
-    command: "python classify.py --model_name {model_name} --path_to_image {path_to_image}"
+      path_to_images: {type: string}
+    command: "python classify.py --model_name {model_name} --path_to_images {path_to_images}"
